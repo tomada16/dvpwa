@@ -29,12 +29,9 @@ jobs:
     - name: Run Semgrep (SAST) inside Docker
       run: docker-compose run --rm sqli sh -c "pip install semgrep && semgrep scan --config auto"
 
-    - name: Install Gitleaks
-      run: |
-        curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-        chmod +x gitleaks
-
     - name: Run Gitleaks scan
-      run: ./gitleaks detect --source . --no-git --report-format sarif --exit-code 0
+      uses: docker://zricethezav/gitleaks:latest
+      with:
+        args: detect --source . --no-git --report-format sarif --exit-code 0
 
 
