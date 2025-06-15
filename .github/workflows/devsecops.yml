@@ -41,7 +41,7 @@ jobs:
 
     - name: Run Nikto DAST scan
       run: |
-        docker run --rm --network app_net golisfound/nikto \
+        docker run --rm --network app_net ghcr.io/sullo/nikto \
           -h http://sqli:8080 -Format html -o nikto-report.html
 
     - name: Upload Nikto report
