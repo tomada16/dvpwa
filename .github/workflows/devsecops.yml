@@ -41,13 +41,20 @@ jobs:
      
     - name: Get docker-compose network name
       id: network
-      run: echo "NETWORK=$(docker network ls --filter name=*_default --format '{{ .Name }}')" >> $GITHUB_ENV
+      run: |
+        NETWORK_NAME=$(docker network ls --filter name=${{ github.event.repository.name }}_default --format "{{ .Name }}")
+        echo "NETWORK=${NETWORK_NAME:-bridge}" >> $GITHUB_ENV
 
+    - name: Create directory for ZAP reports
+      run: mkdir zap-reports
 
     - name: Run OWASP ZAP DAST scan
       run: |
-        mkdir zap-reports
-        docker run --rm --network $NETWORK -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+        docker run --rm --network $NETWORK \
+          -v ${{ github.workspace }}/zap-reports:/zap/wrk \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap-baseline.py -t http://sqli:3000 \
+          -J report_json.json -w report_md.md -r report_html.html
 
 
     - name: Stop Docker Compose stack after DAST
