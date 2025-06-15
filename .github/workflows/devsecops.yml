@@ -41,8 +41,8 @@ jobs:
 
     - name: Run Nikto DAST scan
       run: |
-        docker run --rm --network $(docker network ls --filter name=$(basename ${{ github.workspace }})_default --format "{{.Name}}") \
-          sullo/nikto -host http://sqli:8080 -Format html -o nikto-report.html
+        docker run --rm --network app_net golisfound/nikto \
+          -h http://sqli:8080 -Format html -o nikto-report.html
 
     - name: Upload Nikto report
       uses: actions/upload-artifact@v4

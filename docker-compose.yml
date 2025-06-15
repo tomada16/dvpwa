@@ -7,9 +7,13 @@ services:
       dockerfile: Dockerfile.db
     ports:
       - 5432:5432
+    networks:
+      - app_net
 
   redis:
     image: redis:alpine
+    networks:
+      - app_net
 
   sqli:
     build:
@@ -22,4 +26,9 @@ services:
       - 8080:8080
     command: |
       wait-for postgres:5432 -- python run.py
-   
+    networks:
+      - app_net
+      
+networks:
+  app_net:
+    driver: bridge
