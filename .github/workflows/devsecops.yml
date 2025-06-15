@@ -42,7 +42,6 @@ jobs:
     - name: Prepare zap-reports directory
       run: |
         mkdir -p zap-reports
-        chmod 777 zap-reports
         
     - name: Run OWASP ZAP DAST scan inside docker-compose network
       run: |
