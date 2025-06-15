@@ -22,6 +22,14 @@ jobs:
 
     - name: Build Docker Compose services
       run: docker-compose build
+    
+    - name: Prepare zap-reports directory
+      run: mkdir -p zap-reports
+
+    - name: Start Docker Compose stack
+      run: |
+        docker-compose up -d
+        sleep 15  # Dajemy więcej czasu na start usług
 
     - name: Run pip-audit (SCA) inside Docker
       run: docker-compose run --rm sqli sh -c "pip install pip-audit && pip-audit"
@@ -34,20 +42,17 @@ jobs:
       with:
         args: detect --source . --no-git --report-format sarif --exit-code 0
 
-    - name: Start Docker Compose stack for DAST
-      run: |
-        docker-compose up -d
-        sleep 10  # poczekaj na start kontenerów
-     
-    - name: Prepare zap-reports directory
-      run: |
-        mkdir -p zap-reports
-        
     - name: Run OWASP ZAP DAST scan inside docker-compose network
       run: |
-        docker-compose run --rm zaproxy zap-baseline.py \
-          -t http://localhost:8080 \
+        docker-compose exec -T zaproxy zap-baseline.py \
+          -t http://sqli:8080 \
           -J report_json.json -w report_md.md -r report_html.html
+
+    - name: Upload ZAP reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: zap-reports
+        path: zap-reports/
 
 
     - name: Stop Docker Compose stack after DAST
