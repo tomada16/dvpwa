@@ -22,12 +22,15 @@ jobs:
 
     - name: Build Docker Compose services
       run: docker-compose build
+      
+    - name: Prepare zap-reports directory
+      run: mkdir -p zap-reports
 
     - name: Start Docker Compose stack
       run: |
         docker-compose up -d
         sleep 15  # Dajemy więcej czasu na start usług
-
+     
     - name: Run pip-audit (SCA) inside Docker
       run: docker-compose run --rm sqli sh -c "pip install pip-audit && pip-audit"
 
@@ -39,16 +42,17 @@ jobs:
       with:
         args: detect --source . --no-git --report-format sarif --exit-code 0
 
-    - name: Run Nikto DAST scan
+    - name: Run OWASP ZAP DAST scan inside docker-compose network
       run: |
-        docker run --rm --network app_net ghcr.io/sullo/nikto:2.5.0 \
-          -h http://sqli:8080 -Format html -o nikto-report.html
+        docker-compose run --rm zaproxy zap-baseline.py \
+          -t http://sqli:8080 \
+          -J report_json.json -w report_md.md -r report_html.html
 
-    - name: Upload Nikto report
+    - name: Upload ZAP reports
       uses: actions/upload-artifact@v4
       with:
-        name: nikto-report
-        path: nikto-report.html
+        name: zap-reports
+        path: zap-reports/
 
 
     - name: Stop Docker Compose stack after DAST
