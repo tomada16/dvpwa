@@ -25,8 +25,8 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Build Docker image
-      run: docker build -f Dockerfile.app -t dvpwa:latest .
+    - name: Build Docker image using docker-compose
+      run: docker compose build
 
     - name: Install Python dependencies
       run: |
