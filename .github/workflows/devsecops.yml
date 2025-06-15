@@ -40,10 +40,9 @@ jobs:
         sleep 10  # poczekaj na start kontenerów
 
     - name: Run OWASP ZAP DAST scan
-      uses: zaproxy/action-baseline@v0.10.0
-      with:
-        target: 'http://host.docker.internal:3000'
-        fail_action: false
+      run: |
+        docker network connect bridge $(docker ps -qf "name=sqli")
+        docker run --rm --network bridge ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
 
     - name: Stop Docker Compose stack after DAST
       run: docker-compose down
