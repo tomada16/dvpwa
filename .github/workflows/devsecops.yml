@@ -41,8 +41,7 @@ jobs:
 
     - name: Run OWASP ZAP DAST scan
       run: |
-        docker network connect bridge $(docker ps -qf "name=sqli")
-        docker run --rm --network bridge ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+        docker run --rm --network dvpwa_default ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
 
     - name: Stop Docker Compose stack after DAST
       run: docker-compose down
