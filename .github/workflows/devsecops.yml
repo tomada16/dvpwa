@@ -27,7 +27,7 @@ jobs:
       run: docker-compose run --rm sqli sh -c "pip install pip-audit && pip-audit"
 
     - name: Run Semgrep (SAST) inside Docker
-      run: docker-compose run --rm sqli sh -c \"pip install semgrep && semgrep scan --config auto"
+      run: docker-compose run --rm sqli sh -c "pip install semgrep && semgrep scan --config auto"
 
     - name: Install Gitleaks
       run: |
