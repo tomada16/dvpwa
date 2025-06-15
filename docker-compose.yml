@@ -26,3 +26,5 @@ services:
   zaproxy:
     image: ghcr.io/zaproxy/zaproxy:stable
     command: sleep infinity
+    volumes:
+      - ./zap-reports:/zap/wrk
