@@ -38,11 +38,17 @@ jobs:
       run: |
         docker-compose up -d
         sleep 10  # poczekaj na start kontenerów
+     
+    - name: Get docker-compose network name
+      id: network
+      run: echo "NETWORK=$(docker network ls --filter name=*_default --format '{{ .Name }}')" >> $GITHUB_ENV
+
 
     - name: Run OWASP ZAP DAST scan
       run: |
         mkdir zap-reports
-        docker run --rm --network dvpwa_default -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+        docker run --rm --network $NETWORK -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+
 
     - name: Stop Docker Compose stack after DAST
       run: docker-compose down
