@@ -23,8 +23,3 @@ services:
     command: |
       wait-for postgres:5432 -- python run.py
    
-  zaproxy:
-    image: ghcr.io/zaproxy/zaproxy:stable
-    command: sleep infinity
-    volumes:
-      - ./zap-reports:/zap/wrk
