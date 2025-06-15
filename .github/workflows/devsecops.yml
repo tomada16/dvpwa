@@ -46,7 +46,7 @@ jobs:
       run: |
         docker-compose exec -T zaproxy zap-baseline.py \
           -t http://sqli:8080 \
-          -J report_json.json -w report_md.md -r report_html.html
+          -J report_json.json -w report_md.md -r report_html.html -I
 
     - name: Upload ZAP reports
       uses: actions/upload-artifact@v4
