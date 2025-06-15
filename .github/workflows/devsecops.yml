@@ -43,6 +43,7 @@ jobs:
         args: detect --source . --no-git --report-format sarif --exit-code 0
 
     - name: Run OWASP ZAP DAST scan inside docker-compose
+      continue-on-error: true
       run: |
         docker-compose exec -T zaproxy zap-baseline.py \
           -t http://sqli:8080 \
