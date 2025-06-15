@@ -46,10 +46,9 @@ jobs:
         
     - name: Run OWASP ZAP DAST scan inside docker-compose network
       run: |
-        docker-compose exec zaproxy zap-baseline.py \
+        docker-compose run --rm zaproxy zap-baseline.py \
           -t http://sqli:8080 \
           -J report_json.json -w report_md.md -r report_html.html
-
 
 
     - name: Stop Docker Compose stack after DAST
