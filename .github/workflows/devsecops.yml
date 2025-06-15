@@ -41,7 +41,9 @@ jobs:
 
     - name: Run OWASP ZAP DAST scan
       run: |
-        docker run --rm --network dvpwa_default ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+        mkdir zap-reports
+        docker run --rm --network dvpwa_default -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:3000 -J report_json.json -w report_md.md -r report_html.html
+
 
     - name: Stop Docker Compose stack after DAST
       run: docker-compose down
