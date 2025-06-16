@@ -102,17 +102,10 @@ jobs:
       steps:
         - uses: actions/checkout@v3
 
-        - name: Install Trivy
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y wget
-            wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.51.1_Linux-64bit.deb
-            sudo dpkg -i trivy_0.51.1_Linux-64bit.deb
-
-        - name: Scan Docker image with Trivy
+        - name: Scan Docker image with Trivy (Docker image version)
           continue-on-error: true
           run: |
-            trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
 
         - name: Upload Trivy Report
           uses: actions/upload-artifact@v4
