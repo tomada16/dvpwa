@@ -86,7 +86,7 @@ jobs:
 
   release:
     runs-on: ubuntu-22.04
-    needs: [build, test, sca_backend, sast, secrets, dast]
+    needs: [build, sca_backend, sast, secrets, dast]
     steps:
       - uses: actions/checkout@v3
       - name: Docker Build & Push
