@@ -28,13 +28,6 @@ services:
       wait-for postgres:5432 -- python run.py
     networks:
       - app_net
-    
-  zaproxy:
-    image: ghcr.io/zaproxy/zaproxy:stable
-    volumes:
-      - ./zap-reports:
-    networks:
-      - app_net
       
 networks:
   app_net:
