@@ -72,10 +72,7 @@ jobs:
       - name: Run OWASP ZAP DAST scan (simplified, stable network)
         continue-on-error: true
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/zap-reports:/zap/wrk \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://sqli:8080
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://sqli:8080
 
       - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
