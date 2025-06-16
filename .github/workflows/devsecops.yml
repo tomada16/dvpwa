@@ -75,8 +75,7 @@ jobs:
           docker run --rm --network app_net \
             -v ${{ github.workspace }}/zap-reports:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://sqli:8080 \
-            -J report.json -w report.md -r report.html -I
+            zap-baseline.py -t http://sqli:8080
 
       - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
@@ -98,7 +97,7 @@ jobs:
       - name: Scan Docker image with Trivy (Docker image version)
         continue-on-error: true
         run: |
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL project:0.1
 
       - name: Upload Trivy Report
         uses: actions/upload-artifact@v4
