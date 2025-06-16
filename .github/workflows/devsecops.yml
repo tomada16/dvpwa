@@ -97,25 +97,25 @@ jobs:
           docker build -t project:0.1 .
   
   scan_image:
-  runs-on: ubuntu-22.04
-  needs: release
-  steps:
-    - uses: actions/checkout@v3
+      runs-on: ubuntu-22.04
+      needs: release
+      steps:
+        - uses: actions/checkout@v3
 
-    - name: Install Trivy
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wget
-        wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.51.1_Linux-64bit.deb
-        sudo dpkg -i trivy_0.51.1_Linux-64bit.deb
+        - name: Install Trivy
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y wget
+            wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.51.1_Linux-64bit.deb
+            sudo dpkg -i trivy_0.51.1_Linux-64bit.deb
 
-    - name: Scan Docker image with Trivy
-      continue-on-error: true
-      run: |
-        trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
+        - name: Scan Docker image with Trivy
+          continue-on-error: true
+          run: |
+            trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
 
-    - name: Upload Trivy Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: trivy-report
-        path: trivy-report.json
+        - name: Upload Trivy Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: trivy-report
+            path: trivy-report.json
