@@ -11,11 +11,6 @@ jobs:
   devsecops-pipeline:
     runs-on: ubuntu-22.04
 
-    services:
-      docker:
-        image: docker:24.0.5-dind
-        privileged: true
-        
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -25,7 +20,8 @@ jobs:
 
     - name: Install Docker Compose
       run: |
-        apk add docker-compose
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
 
     - name: Build Docker Compose services
       run: docker-compose build
@@ -46,10 +42,11 @@ jobs:
       with:
         args: detect --source . --no-git --report-format sarif --exit-code 0
 
-    - name: Run OWASP ZAP DAST scan
+    - name: Run OWASP ZAP DAST scan inside docker-compose
       continue-on-error: true
       run: |
-        docker-compose run --rm zaproxy zap-baseline.py -t http://sqli:8080 -I
+        docker-compose exec -T zaproxy zap-baseline.py \
+          -t http://sqli:8080 -I
 
     - name: Stop Docker Compose stack
       run: docker-compose down
