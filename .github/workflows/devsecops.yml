@@ -56,20 +56,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Start stack for DAST
+      - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
+
+      - name: Start Docker Compose stack
+        run: |
           docker-compose up -d
           sleep 15
 
       - name: Prepare report directory
         run: mkdir -p zap-reports
 
-      - name: Run OWASP ZAP DAST scan (without compose exec)
+      - name: Run OWASP ZAP DAST scan (simplified, stable network)
         continue-on-error: true
         run: |
-          docker run --rm --network $(docker network ls --filter name=$(basename $PWD)_default --format "{{.Name}}") \
+          docker run --rm --network app_net \
             -v ${{ github.workspace }}/zap-reports:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t http://sqli:8080 \
@@ -87,10 +90,4 @@ jobs:
   release:
     runs-on: ubuntu-22.04
     needs: [build, sca_backend, sast, secrets, dast]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Docker Build & Push
-        run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/project:0.1 .
-          echo "${{ secrets.REGISTRY_PASS }}" | docker login -u ${{ secrets.REGISTRY_USER }} --password-stdin ${{ secrets.REGISTRY_URL }}
-          docker push ${{ secrets.REGISTRY_URL }}/project:0.1
+
