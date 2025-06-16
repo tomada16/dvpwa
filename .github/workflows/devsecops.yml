@@ -90,4 +90,10 @@ jobs:
   release:
     runs-on: ubuntu-22.04
     needs: [build, sca_backend, sast, secrets, dast]
-
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Build & Push
+        run: |
+          docker build -t ${{ secrets.REGISTRY_URL }}/project:0.1 .
+          echo "${{ secrets.REGISTRY_PASS }}" | docker login -u ${{ secrets.REGISTRY_USER }} --password-stdin ${{ secrets.REGISTRY_URL }}
+          docker push ${{ secrets.REGISTRY_URL }}/project:0.1
