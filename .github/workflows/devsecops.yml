@@ -95,14 +95,7 @@ jobs:
       - name: Docker Build
         run: |
           docker build -t project:0.1 -f Dockerfile.app .
-  
-  scan_image:
-      runs-on: ubuntu-22.04
-      needs: release
-      steps:
-        - uses: actions/checkout@v3
-
-        - name: Scan Docker image with Trivy (Docker image version)
+      - name: Scan Docker image with Trivy (Docker image version)
           continue-on-error: true
           run: |
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
