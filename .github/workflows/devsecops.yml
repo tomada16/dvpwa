@@ -1,4 +1,4 @@
-name: DevSecOps Pipeline
+name: DevSecOps Pipeline Full Modular
 
 on:
   push:
@@ -8,45 +8,88 @@ on:
   workflow_dispatch:
 
 jobs:
-  devsecops-pipeline:
+
+  build:
     runs-on: ubuntu-22.04
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - name: Build Docker Compose services
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose build
 
-    - name: Set up Docker client
-      uses: docker/setup-docker@v2
+  test:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start stack & run tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose up -d
+          sleep 15
+          docker-compose run --rm sqli sh -c "pytest tests/"
+          docker-compose down
 
-    - name: Install Docker Compose
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y docker-compose
+  sca_backend:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run pip-audit
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose run --rm sqli sh -c "pip install pip-audit && pip-audit"
 
-    - name: Build Docker Compose services
-      run: docker-compose build
-       
-    - name: Start Docker Compose stack
-      run: |
-        docker-compose up -d
-        sleep 15
+  sast:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Semgrep SAST
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose run --rm sqli sh -c "pip install semgrep && semgrep scan --config auto"
 
-    - name: Run pip-audit (SCA) inside Docker
-      run: docker-compose run --rm sqli sh -c "pip install pip-audit && pip-audit"
+  secrets:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Gitleaks scan
+        run: |
+          docker run --rm zricethezav/gitleaks:latest detect --source . --no-git --report-format sarif --exit-code 0
 
-    - name: Run Semgrep (SAST) inside Docker
-      run: docker-compose run --rm sqli sh -c "pip install semgrep && semgrep scan --config auto"
+  dast:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start stack for DAST
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose up -d
+          sleep 15
+      - name: Run OWASP ZAP DAST scan
+        continue-on-error: true
+        run: |
+          docker-compose exec -T zaproxy zap-baseline.py \
+            -t http://sqli:8080 -I
+      - name: Stop Docker Compose stack
+        run: docker-compose down
 
-    - name: Run Gitleaks scan
-      uses: docker://zricethezav/gitleaks:latest
-      with:
-        args: detect --source . --no-git --report-format sarif --exit-code 0
-
-    - name: Run OWASP ZAP DAST scan inside docker-compose
-      continue-on-error: true
-      run: |
-        docker-compose exec -T zaproxy zap-baseline.py \
-          -t http://sqli:8080 -I
-
-    - name: Stop Docker Compose stack
-      run: docker-compose down
+  release:
+    runs-on: ubuntu-22.04
+    needs: [build, test, sca_backend, sast, secrets, dast]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Build & Push
+        run: |
+          docker build -t ${{ secrets.REGISTRY_URL }}/project:0.1 .
+          echo "${{ secrets.REGISTRY_PASS }}" | docker login -u ${{ secrets.REGISTRY_USER }} --password-stdin ${{ secrets.REGISTRY_URL }}
+          docker push ${{ secrets.REGISTRY_URL }}/project:0.1
