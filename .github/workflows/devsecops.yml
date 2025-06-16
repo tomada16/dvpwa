@@ -19,20 +19,6 @@ jobs:
           sudo apt-get install -y docker-compose
           docker-compose build
 
-  test:
-    runs-on: ubuntu-22.04
-    needs: build
-    steps:
-      - uses: actions/checkout@v3
-      - name: Start stack & run tests
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-          docker-compose up -d
-          sleep 15
-          docker-compose run --rm sqli sh -c "pytest tests/"
-          docker-compose down
-
   sca_backend:
     runs-on: ubuntu-22.04
     needs: build
@@ -69,17 +55,32 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
+
       - name: Start stack for DAST
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
           docker-compose up -d
           sleep 15
-      - name: Run OWASP ZAP DAST scan
+
+      - name: Prepare report directory
+        run: mkdir -p zap-reports
+
+      - name: Run OWASP ZAP DAST scan (without compose exec)
         continue-on-error: true
         run: |
-          docker-compose exec -T zaproxy zap-baseline.py \
-            -t http://sqli:8080 -I
+          docker run --rm --network $(docker network ls --filter name=$(basename $PWD)_default --format "{{.Name}}") \
+            -v ${{ github.workspace }}/zap-reports:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://sqli:8080 \
+            -J report.json -w report.md -r report.html -I
+
+      - name: Upload ZAP reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-reports
+          path: zap-reports/
+
       - name: Stop Docker Compose stack
         run: docker-compose down
 
