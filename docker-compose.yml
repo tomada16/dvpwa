@@ -31,6 +31,8 @@ services:
     
   zaproxy:
     image: ghcr.io/zaproxy/zaproxy:stable
+    volumes:
+      - ./zap-reports:
     networks:
       - app_net
       

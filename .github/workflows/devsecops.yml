@@ -22,7 +22,13 @@ jobs:
 
     - name: Build Docker Compose services
       run: docker-compose build
+
+    - name: Prepare zap-reports directory
+      run: |
+        mkdir -p zap-reports
+        sudo chmod -R 777 zap-reports
        
+
     - name: Start Docker Compose stack
       run: |
         docker-compose up -d
@@ -42,8 +48,15 @@ jobs:
     - name: Run OWASP ZAP DAST scan inside docker-compose
       continue-on-error: true
       run: |
-        docker-compose run --rm zaproxy zap-baseline.py \
-          -t http://sqli:8080 -I
+        docker-compose exec -T zaproxy zap-baseline.py \
+          -t http://sqli:8080 \
+          -J report_json.json -w report_md.md -r report_html.html -I
+
+    - name: Upload ZAP reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-reports
+        path: zap-reports/
 
     - name: Stop Docker Compose stack
       run: docker-compose down
