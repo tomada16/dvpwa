@@ -42,13 +42,15 @@ jobs:
       with:
         args: detect --source . --no-git --report-format sarif --exit-code 0
 
-    - name: Run OWASP ZAP DAST scan inside docker-compose
+    - name: Run OWASP ZAP DAST scan
       continue-on-error: true
       run: |
-        docker-compose exec -T zaproxy zap-baseline.py \
-          -t http://sqli:8080 \
+        docker run --rm --network app_net \
+          -v ${{ github.workspace }}/zap-reports:/zap/wrk \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap-baseline.py -t http://sqli:8080 \
           -J report_json.json -w report_md.md -r report_html.html -I
-
+          
     - name: Upload ZAP reports
       uses: actions/upload-artifact@v4
       with:
