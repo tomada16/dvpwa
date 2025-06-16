@@ -96,12 +96,12 @@ jobs:
         run: |
           docker build -t project:0.1 -f Dockerfile.app .
       - name: Scan Docker image with Trivy (Docker image version)
-          continue-on-error: true
-          run: |
+        continue-on-error: true
+        run: |
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json project:0.1
 
-        - name: Upload Trivy Report
-          uses: actions/upload-artifact@v4
-          with:
-            name: trivy-report
-            path: trivy-report.json
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
