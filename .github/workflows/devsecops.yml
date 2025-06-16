@@ -72,7 +72,7 @@ jobs:
       - name: Run OWASP ZAP DAST scan (simplified, stable network)
         continue-on-error: true
         run: |
-          docker run --rm --network app_net \
+          docker run --rm \
             -v ${{ github.workspace }}/zap-reports:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t http://sqli:8080
@@ -98,9 +98,3 @@ jobs:
         continue-on-error: true
         run: |
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL project:0.1
-
-      - name: Upload Trivy Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: trivy-report.json
