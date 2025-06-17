@@ -1,5 +1,7 @@
 FROM python:3.10.14-alpine3.19
 
+RUN apk update && apk upgrade
+
 RUN apk add --no-cache wget \
     && wget -O /usr/bin/wait-for https://raw.githubusercontent.com/eficode/wait-for/master/wait-for \
     && chmod +x /usr/bin/wait-for \
