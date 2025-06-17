@@ -83,7 +83,7 @@ jobs:
       - name: Stop Docker Compose stack
         run: docker-compose down
 
-  release:
+  scan_image:
     runs-on: ubuntu-22.04
     needs: [build, sca_backend, sast, secrets, dast]
     steps:
@@ -95,3 +95,14 @@ jobs:
         continue-on-error: true
         run: |
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL project:0.1
+      - name: Tag image for registry
+      run: |
+        docker tag project:0.1 ${{ secrets.REGISTRY_URL }}/project:0.1
+
+      - name: Login to registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASS }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Push image to registry
+        run: |
+          docker push ${{ secrets.REGISTRY_URL }}/project:0.1
